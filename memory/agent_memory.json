@@ -110,5 +110,21 @@
   {
     "role": "ai",
     "content": "Used tool: command_runner\nResult: None"
+  },
+  {
+    "role": "user",
+    "content": "upload this project to https://github.com/priyanshiiitr/sample.git"
+  },
+  {
+    "role": "ai",
+    "content": "Used tool: command_runner\nResult: None"
+  },
+  {
+    "role": "user",
+    "content": "upload this project to https://github.com/priyanshiiitr/sample.git"
+  },
+  {
+    "role": "ai",
+    "content": "Used tool: command_runner\nResult: None"
   }
 ]

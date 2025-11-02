@@ -1,47 +1,55 @@
 import subprocess
 import os
-import re
 
-def git_commit_and_push(message="Auto commit by AI Agent", repo_url=None, base_dir="generated_projects"):
+def git_commit_and_push(message="Auto commit by AI Agent", repo_url=None):
     """
-    Add, commit, and push project files to a GitHub repository.
-    If repo_url is provided, it sets the remote and pushes to it.
-    Example:
-        git_commit_and_push("Upload project", "https://github.com/user/repo.git")
+    Automatically initialize git, remove old origin if exists,
+    add new origin, commit, and push changes to the given repository.
     """
-
     try:
-        # Move to the correct directory
-        os.chdir(base_dir)
+        # Move into the generated project folder
+        if not os.path.isdir("generated_projects"):
+            print("❌ No generated_projects folder found.")
+            return "❌ No project folder found to upload."
 
-        # Initialize repo if needed
-        if not os.path.exists(os.path.join(base_dir, ".git")):
-            subprocess.run("git init", shell=True, check=True)
-            print("🆕 Initialized new Git repository.")
+        os.chdir("generated_projects")
 
-        # Ensure main branch exists
-        subprocess.run("git checkout -B main", shell=True, check=True)
+        # If there are multiple subprojects, pick the latest one
+        subfolders = sorted(
+            [d for d in os.listdir(".") if os.path.isdir(d)],
+            key=lambda x: os.path.getmtime(x),
+            reverse=True
+        )
+        target_folder = subfolders[0] if subfolders else "."
+        os.chdir(target_folder)
 
-        # Stage and commit
-        subprocess.run("git add .", shell=True, check=True)
-        subprocess.run(f'git commit -m "{message}"', shell=True)
-        print("✅ Changes committed successfully.")
+        print(f"📂 Using folder: {os.getcwd()}")
 
-        # Set remote if repo URL is given
+        # Initialize git repo if not already
+        subprocess.run("git init", shell=True, check=False)
+
+        # Remove old remote origin if exists
+        subprocess.run("git remote remove origin", shell=True, check=False)
+
+        # Add the new remote
         if repo_url:
-            subprocess.run("git remote remove origin", shell=True, stderr=subprocess.DEVNULL)
-            subprocess.run(f"git remote add origin {repo_url}", shell=True, check=True)
-            print(f"🔗 Linked remote repository: {repo_url}")
+            subprocess.run(f'git remote add origin {repo_url}', shell=True, check=True)
 
-        # Push to GitHub (with fallback)
-        push_result = subprocess.run("git push -u origin main", shell=True, text=True, capture_output=True)
-        if "error" in push_result.stderr.lower():
-            print("⚠️ Push failed, trying force push...")
-            subprocess.run("git push -u origin main --force", shell=True, check=True)
-        
-        print("🚀 Project uploaded successfully to GitHub!")
+        # Stage, commit, and push
+        subprocess.run("git add .", shell=True, check=True)
+        subprocess.run(f'git commit -m "{message}"', shell=True, check=True)
+
+        # Push to 'main' branch, creating it if necessary
+        subprocess.run("git branch -M main", shell=True, check=False)
+        subprocess.run("git push -u origin main --force", shell=True, check=True)
+
+        print(f"✅ Successfully pushed to {repo_url}")
+        os.chdir("../..")  # Return to root directory
+        return f"✅ Successfully uploaded project to {repo_url}"
 
     except subprocess.CalledProcessError as e:
-        print("❌ Git command failed:", e)
+        os.chdir("../..")
+        return f"❌ Git operation failed: {e}"
     except Exception as e:
-        print("❌ Unexpected error:", str(e))
+        os.chdir("../..")
+        return f"❌ Unexpected error: {e}"
