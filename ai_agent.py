@@ -247,7 +247,9 @@ def handle_user_prompt(prompt):
             result = run_command(cmd)
         elif tool == "git_manager":
             message = args.get("message", "Auto commit by AI Agent")
-            result = git_commit_and_push(message)
+            repo_url = args.get("repo_url") or extract_repo_url_from_text(prompt)
+            result = git_commit_and_push(message, repo_url)
+
         elif tool == "project_generator":
             data = generate_project_structure(prompt)
             if data:
@@ -275,3 +277,7 @@ def handle_user_prompt(prompt):
     save_memory()
 
     return result
+def extract_repo_url_from_text(text):
+    """Extract GitHub repository URL from user prompt."""
+    match = re.search(r'https?://github\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+', text)
+    return match.group(0) if match else None

@@ -86,5 +86,29 @@
   {
     "role": "ai",
     "content": "Used tool: file_editor\nResult: None"
+  },
+  {
+    "role": "user",
+    "content": "add the project to github"
+  },
+  {
+    "role": "ai",
+    "content": "Used tool: git_manager\nResult: None"
+  },
+  {
+    "role": "user",
+    "content": "https://github.com/priyanshiiitr/sample.git add the project to this git repository"
+  },
+  {
+    "role": "ai",
+    "content": "Used tool: command_runner\nResult: None"
+  },
+  {
+    "role": "user",
+    "content": "upload this project to https://github.com/priyanshiiitr/sample.git"
+  },
+  {
+    "role": "ai",
+    "content": "Used tool: command_runner\nResult: None"
   }
 ]
