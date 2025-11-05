@@ -247,17 +247,7 @@ def handle_user_prompt(prompt):
             result = run_command(cmd)
         elif tool == "git_manager":
             message = args.get("message", "Auto commit by AI Agent")
-            repo_url = args.get("repo_url") or extract_repo_url_from_text(prompt)
-            result = git_commit_and_push(message, repo_url)
-        elif tool == "git_manager":
-            message = args.get("message", "Auto commit by AI Agent")
-            repo_url = args.get("repo_url") or extract_repo_url_from_text(prompt)
-            if not repo_url:
-                print("❌ No GitHub repository URL found in your prompt.")
-                result = "❌ Please include a GitHub link like: https://github.com/username/repo.git"
-            else:
-             print(f"📦 Detected GitHub repository: {repo_url}")
-             result = git_commit_and_push(message, repo_url)
+            result = git_commit_and_push(message)
         elif tool == "project_generator":
             data = generate_project_structure(prompt)
             if data:
@@ -285,15 +275,3 @@ def handle_user_prompt(prompt):
     save_memory()
 
     return result
-def extract_repo_url_from_text(text):
-    """
-    Extract GitHub repository URL (with or without .git suffix) from prompt text.
-    """
-    match = re.search(r'https?://github\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+(?:\.git)?', text)
-    if not match:
-        return None
-    repo_url = match.group(0)
-    # Ensure .git suffix for consistency
-    if not repo_url.endswith(".git"):
-        repo_url += ".git"
-    return repo_url

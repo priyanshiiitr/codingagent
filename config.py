@@ -1,2 +1,2 @@
-API_KEY = "AIzaSyBei4-36NgFc0BmLKLwSvSRRUHGod49_sg"
+API_KEY = "AIzaSyDNXcCDozHtgHsBbneBVtZL-Nai-apZpl4"
 MODEL_NAME = "gemini-2.5-pro"

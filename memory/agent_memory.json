@@ -126,5 +126,53 @@
   {
     "role": "ai",
     "content": "Used tool: command_runner\nResult: None"
+  },
+  {
+    "role": "user",
+    "content": "upload this project to https://github.com/priyanshiiitr/sample.git"
+  },
+  {
+    "role": "ai",
+    "content": "Used tool: command_runner\nResult: None"
+  },
+  {
+    "role": "user",
+    "content": "Just make the simple frontend no need for backend or database now"
+  },
+  {
+    "role": "ai",
+    "content": "Used tool: project_generator\nResult: ❌ Project generation failed."
+  },
+  {
+    "role": "user",
+    "content": "upload to github"
+  },
+  {
+    "role": "ai",
+    "content": "Used tool: git_manager\nResult: ❌ Git operation failed: Command 'git push -u origin main --force' returned non-zero exit status 128."
+  },
+  {
+    "role": "user",
+    "content": "upload to github https://github.com/priyanshiiitr/codingagent.git"
+  },
+  {
+    "role": "ai",
+    "content": "Used tool: project_generator\nResult: ❌ Project generation failed."
+  },
+  {
+    "role": "user",
+    "content": "make a folder named jk"
+  },
+  {
+    "role": "ai",
+    "content": "Used tool: command_runner\nResult: None"
+  },
+  {
+    "role": "user",
+    "content": "upload the binary_tree_traversal.py to github"
+  },
+  {
+    "role": "ai",
+    "content": "Used tool: git_manager\nResult: ❌ Git operation failed: Command 'git push -u origin main --force' returned non-zero exit status 128."
   }
 ]

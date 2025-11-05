@@ -1,136 +1,82 @@
-
 from flask import Flask, render_template, request, redirect, url_for, session, flash
-from functools import wraps
 import os
 
 app = Flask(__name__)
-# Use an environment variable for the secret key in a real app
+# A secret key is needed to use sessions
 app.secret_key = os.urandom(24)
 
-# --- UI Theme Configuration ---
-# This dictionary provides styling values for a modern look and feel.
-# It can be used within Jinja2 templates to apply consistent colors, fonts, and spacing.
-# Example in HTML: <body style="background-color: {{ theme.bg_color }};">
-# Or in a <style> block: .my-class { border-radius: {{ theme.border_radius }}; }
-ui_theme = {
-    'font_family': "'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
-    'bg_color': '#f8f9fa',
-    'card_bg_color': '#ffffff',
-    'primary_color': '#0d6efd',
-    'secondary_color': '#6c757d',
-    'success_color': '#198754',
-    'danger_color': '#dc3545',
-    'text_color_dark': '#212529',
-    'text_color_light': '#f8f9fa',
-    'border_color': '#dee2e6',
-    'shadow': '0 0.5rem 1rem rgba(0, 0, 0, 0.15)',
-    'border_radius': '0.5rem',
-    'padding_md': '1.5rem',
-    'padding_sm': '1rem',
+# Dummy product data (in a real app, this would come from a database)
+PRODUCTS = {
+    1: {'id': 1, 'name': 'Classic Leather Watch', 'price': 150.00, 'description': 'A timeless piece with a genuine leather strap.', 'image': 'images/watch.jpg'},
+    2: {'id': 2, 'name': 'Wireless Bluetooth Headphones', 'price': 75.50, 'description': 'High-fidelity sound with 20 hours of battery life.', 'image': 'images/headphones.jpg'},
+    3: {'id': 3, 'name': 'Modern Minimalist Backpack', 'price': 45.00, 'description': 'Sleek, durable, and water-resistant. Perfect for daily commute.', 'image': 'images/backpack.jpg'},
+    4: {'id': 4, 'name': 'Stainless Steel Water Bottle', 'price': 25.00, 'description': 'Keeps your drinks cold for 24 hours or hot for 12 hours.', 'image': 'images/bottle.jpg'},
+    5: {'id': 5, 'name': 'Ergonomic Office Chair', 'price': 250.00, 'description': 'Supports your posture for a comfortable workday.', 'image': 'images/chair.jpg'},
+    6: {'id': 6, 'name': 'Smart Home Hub', 'price': 99.99, 'description': 'Control all your smart devices from one central hub.', 'image': 'images/hub.jpg'}
 }
+# NOTE: You need to create a 'static/images' folder and add the corresponding images
+# (watch.jpg, headphones.jpg, etc.) for the app to display them.
 
-# Sample product data (in a real app, this would come from a database)
-products = {
-    1: {'name': 'Modern Laptop', 'price': 1200.00, 'description': 'A high-performance laptop for all your needs.', 'image': 'laptop.jpg'},
-    2: {'name': 'Wireless Headphones', 'price': 150.00, 'description': 'Noise-cancelling headphones with superior sound quality.', 'image': 'headphones.jpg'},
-    3: {'name': 'Smart Watch', 'price': 250.00, 'description': 'Track your fitness and stay connected on the go.', 'image': 'watch.jpg'},
-    4: {'name': 'Ergonomic Mouse', 'price': 75.00, 'description': 'A comfortable mouse designed for long hours of use.', 'image': 'mouse.jpg'},
-    5: {'name': 'Mechanical Keyboard', 'price': 180.00, 'description': 'A tactile and responsive keyboard for typing enthusiasts.', 'image': 'keyboard.jpg'},
-    6: {'name': '4K Monitor', 'price': 450.00, 'description': 'A stunning 27-inch 4K monitor with vibrant colors.', 'image': 'monitor.jpg'}
-}
-
-@app.before_request
-def initialize_cart():
-    if 'cart' not in session:
-        session['cart'] = {}
+@app.context_processor
+def utility_processor():
+    def get_cart_count():
+        return len(session.get('cart', []))
+    def get_cart_items():
+        cart_product_ids = session.get('cart', [])
+        return [PRODUCTS[pid] for pid in cart_product_ids if pid in PRODUCTS]
+    return dict(get_cart_count=get_cart_count, get_cart_items=get_cart_items)
 
 @app.route('/')
-def index():
-    return render_template('index.html', products=products, theme=ui_theme)
+def home():
+    """Renders the home page with a list of all products."""
+    products_list = list(PRODUCTS.values())
+    return render_template('index.html', products=products_list)
 
 @app.route('/product/<int:product_id>')
 def product_detail(product_id):
-    product = products.get(product_id)
-    if not product:
-        return "Product not found", 404
-    return render_template('product_detail.html', product=product, product_id=product_id, theme=ui_theme)
+    """Renders the detail page for a single product."""
+    product = PRODUCTS.get(product_id)
+    if product:
+        return render_template('product.html', product=product)
+    return 'Product not found', 404
 
 @app.route('/add_to_cart/<int:product_id>', methods=['POST'])
 def add_to_cart(product_id):
-    product_id_str = str(product_id)
-    if product_id not in products:
-        flash('Invalid product!', 'danger')
-        return redirect(url_for('index'))
-
-    cart = session['cart']
-    quantity = int(request.form.get('quantity', 1))
-
-    if product_id_str in cart:
-        cart[product_id_str]['quantity'] += quantity
+    """Adds a product to the cart stored in the session."""
+    cart = session.get('cart', [])
+    if product_id not in cart:
+        cart.append(product_id)
+        session['cart'] = cart
+        flash(f"{PRODUCTS[product_id]['name']} added to cart!", 'success')
     else:
-        cart[product_id_str] = {
-            'name': products[product_id]['name'],
-            'price': products[product_id]['price'],
-            'quantity': quantity
-        }
-    
-    session.modified = True
-    flash(f'{products[product_id]["name"]} has been added to your cart.', 'success')
-    return redirect(request.referrer or url_for('index'))
+        flash('Item is already in your cart.', 'info')
+    return redirect(url_for('product_detail', product_id=product_id))
 
 @app.route('/cart')
 def view_cart():
-    cart = session.get('cart', {})
-    total_price = 0
-    for item in cart.values():
-        total_price += item['price'] * item['quantity']
-    return render_template('cart.html', cart=cart, total_price=total_price, theme=ui_theme)
+    """Displays the contents of the shopping cart."""
+    cart_product_ids = session.get('cart', [])
+    cart_products = [PRODUCTS[pid] for pid in cart_product_ids if pid in PRODUCTS]
+    total_price = sum(product['price'] for product in cart_products)
+    return render_template('cart.html', cart_items=cart_products, total_price=total_price)
 
-@app.route('/update_cart/<int:product_id>', methods=['POST'])
-def update_cart(product_id):
-    product_id_str = str(product_id)
-    cart = session.get('cart', {})
-    quantity = int(request.form.get('quantity'))
-
-    if product_id_str in cart:
-        if quantity > 0:
-            cart[product_id_str]['quantity'] = quantity
-            flash('Cart updated.', 'success')
-        else:
-            del cart[product_id_str]
-            flash('Item removed from cart.', 'info')
-    
-    session.modified = True
-    return redirect(url_for('view_cart'))
-
-@app.route('/remove_from_cart/<int:product_id>', methods=['POST'])
+@app.route('/remove_from_cart/<int:product_id>')
 def remove_from_cart(product_id):
-    product_id_str = str(product_id)
-    cart = session.get('cart', {})
-
-    if product_id_str in cart:
-        del cart[product_id_str]
-        flash('Item removed from cart.', 'info')
-
-    session.modified = True
+    """Removes an item from the cart."""
+    cart = session.get('cart', [])
+    if product_id in cart:
+        cart.remove(product_id)
+        session['cart'] = cart
+        flash(f"{PRODUCTS[product_id]['name']} removed from cart.", 'success')
     return redirect(url_for('view_cart'))
 
 @app.route('/checkout')
 def checkout():
-    cart = session.get('cart', {})
-    if not cart:
-        flash('Your cart is empty. Cannot proceed to checkout.', 'warning')
-        return redirect(url_for('index'))
-    return render_template('checkout.html', theme=ui_theme)
-
-@app.route('/process_checkout', methods=['POST'])
-def process_checkout():
-    # Here you would typically process the payment, save the order, etc.
-    # For this example, we'll just clear the cart.
-    session['cart'] = {}
-    session.modified = True
-    flash('Thank you for your order! It has been placed successfully.', 'success')
-    return redirect(url_for('index'))
+    """Placeholder for the checkout process."""
+    # In a real app, this would lead to a payment gateway
+    session.pop('cart', None) # Clear cart after checkout
+    flash('Thank you for your purchase!', 'success')
+    return redirect(url_for('home'))
 
 if __name__ == '__main__':
     app.run(debug=True)
