@@ -2,3 +2,8 @@ fastapi
 uvicorn
 google-generativeai
 flask
+langchain
+streamlit
+python-dotenv
+langchain-community
+gitpython
