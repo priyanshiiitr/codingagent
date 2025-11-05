@@ -2,7 +2,7 @@ fastapi
 uvicorn
 google-generativeai
 flask
-langchain
+langchain==0.3.27
 streamlit
 python-dotenv
 langchain-community
