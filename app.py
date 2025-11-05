@@ -5,49 +5,41 @@ from ai_agent import handle_user_prompt
 st.set_page_config(page_title="AI Code Agent", page_icon="🤖", layout="wide")
 
 st.title("🤖 AI Integrated Code Agent")
-st.subheader("Generate, modify, commit & push code — with natural language")
+st.subheader("Generate, modify, upload to GitHub")
 
 st.markdown("---")
 
 mode = st.radio("Choose Mode:", ["Generate Project", "Agent Mode"])
 
-prompt = st.text_area(
-    "🧠 Enter your prompt:",
-    height=150,
-    placeholder="Example: create a flask app with login and a product page"
-)
+prompt = st.text_area("🧠 Enter your prompt:", height=150,
+                      placeholder="Example: create a flask app with login page")
 
+github_enabled = st.checkbox("Upload to GitHub after generation?")
+
+if github_enabled:
+    st.markdown("### 🔑 GitHub Credentials (User enters)")
+    github_username = st.text_input("GitHub Username")
+    github_reponame = st.text_input("GitHub Repository Name")
+    github_pat = st.text_input("GitHub Personal Access Token (PAT)", type="password")
+
+col1, col2 = st.columns([1, 3])
 auto_run = False
+
 if mode == "Generate Project":
-    auto_run = st.checkbox("Run the main file after generation?")
+    auto_run = col1.checkbox("Run main file (local VS Code only)?")
 
-if st.button("🚀 Execute"):
-    if not prompt.strip():
-        st.error("⚠️ Please enter a prompt before executing")
-    else:
-        with st.spinner("Processing..."):
-            if mode == "Generate Project":
-                build_and_run(prompt, auto_run)
-                st.success("✅ Project generated in VS Code workspace")
-            else:
-                result = handle_user_prompt(prompt)
-
-                if isinstance(result, dict):  # GitHub result dictionary
-                    st.success("✅ Successfully pushed code to GitHub")
-
-                    if result.get("repo_url"):
-                        st.markdown(f"🔗 **GitHub Repo:** [{result['repo_url']}]({result['repo_url']})")
-
-                    if result.get("zip_url"):
-                        st.markdown(f"⬇️ **Download ZIP:** [{result['zip_url']}]({result['zip_url']})")
-
-                    if result.get("codespaces_url"):
-                        st.markdown(
-                            f"[🚀 Open in GitHub Codespaces]({result['codespaces_url']})",
-                            unsafe_allow_html=True
-                        )
-                else:
-                    st.success(result)
-
-st.markdown("---")
-st.caption("Built with ❤️ using Streamlit + Gemini + LangChain")
+if col2.button("🚀 Execute"):
+    with st.spinner("Processing..."):
+        if mode == "Generate Project":
+            zip_bytes = build_and_run(prompt, auto_run, github_enabled,
+                                      github_username, github_reponame, github_pat)
+            if zip_bytes:
+                st.download_button(
+                    "⬇️ Download Generated Project",
+                    data=zip_bytes,
+                    file_name="project.zip",
+                    mime="application/zip"
+                )
+        else:
+            result = handle_user_prompt(prompt)
+            st.success(result)
