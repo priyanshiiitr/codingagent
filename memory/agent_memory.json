@@ -182,5 +182,13 @@
   {
     "role": "ai",
     "content": "Used tool: git_manager\nResult: None"
+  },
+  {
+    "role": "user",
+    "content": "upload to github"
+  },
+  {
+    "role": "ai",
+    "content": "Used tool: git_manager\nResult: None"
   }
 ]
