@@ -1,2 +1,9 @@
-API_KEY = "AIzaSyDNXcCDozHtgHsBbneBVtZL-Nai-apZpl4"
-MODEL_NAME = "gemini-2.5-pro"
+# config.py
+
+import os
+from dotenv import load_dotenv
+
+# Load .env file
+load_dotenv()
+API_KEY = os.getenv("API_KEY") 
+MODEL_NAME = os.getenv("MODEL_NAME")

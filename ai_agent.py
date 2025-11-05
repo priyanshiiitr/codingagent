@@ -246,8 +246,12 @@ def handle_user_prompt(prompt):
             cmd = args.get("cmd", "")
             result = run_command(cmd)
         elif tool == "git_manager":
-            message = args.get("message", "Auto commit by AI Agent")
-            result = git_commit_and_push(message)
+            base = "generated_projects"
+            projects = sorted([d for d in os.listdir(base)], reverse=True)
+            folder_path = os.path.join(base, projects[0]) if projects else None
+
+            result = git_commit_and_push(folder_path)
+
         elif tool == "project_generator":
             data = generate_project_structure(prompt)
             if data:
